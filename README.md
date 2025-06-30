@@ -1,9 +1,9 @@
-# 🌐 Web Projects Collection by Abhishek
+# <picture> <source srcset="https://fonts.gstatic.com/s/e/notoemoji/latest/1f30f/512.webp" type="image/webp"> <img src="https://fonts.gstatic.com/s/e/notoemoji/latest/1f30f/512.gif" alt="🌏" width="32" height="32"> </picture> Web Projects Collection by Abhishek
 
 This repository is a **collection of all the web pages** created by **Abhishek Sharma** to date.  
 Each subfolder contains an individual project with its own purpose, design, and functionality.
 
-## 📁 Projects Included
+## <picture> <source srcset="https://fonts.gstatic.com/s/e/notoemoji/latest/1f48c/512.webp" type="image/webp"> <img src="https://fonts.gstatic.com/s/e/notoemoji/latest/1f48c/512.gif" alt="💌" width="32" height="32"> </picture> Projects Included
 
 - GYM Landing Page
 - Aeroplane Landing Page
@@ -12,14 +12,14 @@ Each subfolder contains an individual project with its own purpose, design, and 
 - Portfolio Website
 - ...and many more coming soon!
 
-## 💻 Tech Stack
+## <picture> <source srcset="https://fonts.gstatic.com/s/e/notoemoji/latest/2699_fe0f/512.webp" type="image/webp"> <img src="https://fonts.gstatic.com/s/e/notoemoji/latest/2699_fe0f/512.gif" alt="⚙" width="32" height="32"> </picture> Tech Stack
 
 - HTML5
 - CSS3
 - JavaScript (in some projects)
 - ...and many more coming soon!
 
-## 🚀 Getting Started
+## <picture> <source srcset="https://fonts.gstatic.com/s/e/notoemoji/latest/1f680/512.webp" type="image/webp"> <img src="https://fonts.gstatic.com/s/e/notoemoji/latest/1f680/512.gif" alt="🚀" width="32" height="32"> </picture> Getting Started
 
 1. Clone this repository:
    ```bash
@@ -33,10 +33,10 @@ Each subfolder contains an individual project with its own purpose, design, and 
 
 3. Open `index.html` in your browser or use Live Server to preview.
 
-## 🙌 Author
+## <picture> <source srcset="https://fonts.gstatic.com/s/e/notoemoji/latest/1f917/512.webp" type="image/webp"> <img src="https://fonts.gstatic.com/s/e/notoemoji/latest/1f917/512.gif" alt="🤗" width="32" height="32"> </picture> Author
 
-Made with ❤️ by **Abhishek Sharma**
+Made with <picture> <source srcset="https://fonts.gstatic.com/s/e/notoemoji/latest/1f496/512.webp" type="image/webp"> <img src="https://fonts.gstatic.com/s/e/notoemoji/latest/1f496/512.gif" alt="💖" width="32" height="32"> </picture> by **Abhishek Sharma**
 
 ---
 
-Give this repository a ⭐ if you find it useful or inspiring!
+Give this repository a <picture> <source srcset="https://fonts.gstatic.com/s/e/notoemoji/latest/1f31f/512.webp" type="image/webp"> <img src="https://fonts.gstatic.com/s/e/notoemoji/latest/1f31f/512.gif" alt="🌟" width="32" height="32"> </picture> if you find it useful or inspiring!
