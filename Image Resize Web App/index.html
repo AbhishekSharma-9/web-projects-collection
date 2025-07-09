@@ -1,0 +1,393 @@
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Image Upload & Folder Organizer</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"
+  />
+  <style>
+    #resizeCanvas {
+      display: none;
+    }
+  </style>
+</head>
+<body class="bg-gray-50 min-h-screen flex flex-col">
+  <header class="bg-white shadow p-4 flex items-center justify-center">
+    <h1 class="text-2xl font-bold text-gray-800">
+      Image Upload & Folder Organizer
+    </h1>
+  </header>
+
+  <main class="flex-grow container mx-auto p-4 max-w-4xl">
+    <form id="uploadForm" class="bg-white p-6 rounded-lg shadow-md space-y-6">
+      <div>
+        <label
+          for="folderName"
+          class="block text-gray-700 font-semibold mb-2"
+          >Folder Name</label
+        >
+        <input
+          type="text"
+          id="folderName"
+          name="folderName"
+          placeholder="Enter folder name"
+          required
+          class="w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+        />
+      </div>
+
+      <div>
+        <label
+          for="imageUpload"
+          class="block text-gray-700 font-semibold mb-2"
+          >Upload Images (jpg, jpeg, png)</label
+        >
+        <input
+          type="file"
+          id="imageUpload"
+          name="imageUpload"
+          accept=".jpg,.jpeg,.png"
+          multiple
+          required
+          class="w-full"
+        />
+      </div>
+
+      <button
+        type="submit"
+        class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 rounded-md transition"
+      >
+        Upload & Resize Images
+      </button>
+    </form>
+
+    <section id="foldersSection" class="mt-10">
+      <h2 class="text-xl font-semibold text-gray-800 mb-4">Folders</h2>
+      <div
+        id="foldersList"
+        class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6"
+      ></div>
+    </section>
+
+    <section
+      id="imagesModal"
+      class="fixed inset-0 bg-black bg-opacity-70 hidden items-center justify-center p-4 z-50"
+    >
+      <div
+        class="bg-white rounded-lg max-w-5xl w-full max-h-[90vh] overflow-y-auto p-6 relative"
+      >
+        <button
+          id="closeModalBtn"
+          class="absolute top-4 right-4 text-gray-600 hover:text-gray-900 text-2xl"
+          aria-label="Close images modal"
+        >
+          <i class="fas fa-times"></i>
+        </button>
+        <h3 class="text-2xl font-semibold mb-4" id="modalFolderName"></h3>
+        <div
+          id="modalImagesGrid"
+          class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4"
+        ></div>
+        <button
+          id="downloadAllBtn"
+          class="mt-6 w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-3 rounded-md transition flex items-center justify-center gap-2"
+        >
+          <i class="fas fa-download"></i> Download All Images as ZIP
+        </button>
+      </div>
+    </section>
+  </main>
+
+  <canvas id="resizeCanvas"></canvas>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+  <script>
+    (() => {
+      const uploadForm = document.getElementById("uploadForm");
+      const folderNameInput = document.getElementById("folderName");
+      const imageUploadInput = document.getElementById("imageUpload");
+      const foldersList = document.getElementById("foldersList");
+      const imagesModal = document.getElementById("imagesModal");
+      const closeModalBtn = document.getElementById("closeModalBtn");
+      const modalImagesGrid = document.getElementById("modalImagesGrid");
+      const modalFolderName = document.getElementById("modalFolderName");
+      const downloadAllBtn = document.getElementById("downloadAllBtn");
+      const resizeCanvas = document.getElementById("resizeCanvas");
+      const ctx = resizeCanvas.getContext("2d");
+
+      // Standard resize dimensions
+      const STANDARD_SIZE = 640;
+
+      // Data structure to hold folders and images
+      // Structure: { folderName: [ {name, blob, url} ] }
+      const folders = {};
+
+      // Helper: Resize image file to 640x640 (fit inside square, maintain aspect ratio, fill with white background)
+      function resizeImage(file) {
+        return new Promise((resolve, reject) => {
+          const img = new Image();
+          const url = URL.createObjectURL(file);
+          img.onload = () => {
+            // Calculate new width and height to fit inside 640x640 while maintaining aspect ratio
+            let targetWidth, targetHeight;
+            if (img.width > img.height) {
+              targetWidth = STANDARD_SIZE;
+              targetHeight = Math.round((img.height / img.width) * STANDARD_SIZE);
+            } else {
+              targetHeight = STANDARD_SIZE;
+              targetWidth = Math.round((img.width / img.height) * STANDARD_SIZE);
+            }
+
+            resizeCanvas.width = STANDARD_SIZE;
+            resizeCanvas.height = STANDARD_SIZE;
+
+            // Fill canvas with white background
+            ctx.fillStyle = "white";
+            ctx.fillRect(0, 0, STANDARD_SIZE, STANDARD_SIZE);
+
+            // Draw resized image centered
+            const xOffset = Math.round((STANDARD_SIZE - targetWidth) / 2);
+            const yOffset = Math.round((STANDARD_SIZE - targetHeight) / 2);
+            ctx.clearRect(0, 0, STANDARD_SIZE, STANDARD_SIZE);
+            ctx.fillStyle = "white";
+            ctx.fillRect(0, 0, STANDARD_SIZE, STANDARD_SIZE);
+            ctx.drawImage(img, xOffset, yOffset, targetWidth, targetHeight);
+
+            resizeCanvas.toBlob(
+              (blob) => {
+                URL.revokeObjectURL(url);
+                if (!blob) {
+                  reject(new Error("Canvas is empty or failed to convert to blob."));
+                  return;
+                }
+                resolve(blob);
+              },
+              "image/jpeg",
+              0.9
+            );
+          };
+          img.onerror = () => {
+            URL.revokeObjectURL(url);
+            reject(new Error("Failed to load image for resizing."));
+          };
+          img.crossOrigin = "anonymous";
+          img.src = url;
+        });
+      }
+
+      // Render folders list with preview thumbnails and download button
+      function renderFolders() {
+        foldersList.innerHTML = "";
+        const folderNames = Object.keys(folders);
+        if (folderNames.length === 0) {
+          foldersList.innerHTML =
+            '<p class="text-gray-500 col-span-full text-center">No folders uploaded yet.</p>';
+          return;
+        }
+
+        folderNames.forEach((folder) => {
+          const folderCard = document.createElement("div");
+          folderCard.className =
+            "bg-white rounded-lg shadow p-4 flex flex-col";
+
+          // Folder header with icon and name
+          const folderHeader = document.createElement("div");
+          folderHeader.className = "flex items-center gap-3 mb-3";
+
+          const folderIcon = document.createElement("i");
+          folderIcon.className = "fas fa-folder text-indigo-600 text-3xl";
+
+          const folderTitle = document.createElement("h3");
+          folderTitle.className = "text-lg font-semibold text-gray-800 truncate flex-1";
+          folderTitle.textContent = folder;
+
+          folderHeader.appendChild(folderIcon);
+          folderHeader.appendChild(folderTitle);
+
+          folderCard.appendChild(folderHeader);
+
+          // Images preview grid (max 4 thumbnails)
+          const previewGrid = document.createElement("div");
+          previewGrid.className = "grid grid-cols-4 gap-2 mb-3";
+
+          const images = folders[folder];
+          images.slice(0, 4).forEach(({ url, name }) => {
+            const imgEl = document.createElement("img");
+            imgEl.src = url;
+            imgEl.alt = `Resized image named ${name} in folder ${folder}`;
+            imgEl.className = "w-full h-16 object-cover rounded border border-gray-300";
+            previewGrid.appendChild(imgEl);
+          });
+
+          folderCard.appendChild(previewGrid);
+
+          // Bottom row: images count + buttons
+          const bottomRow = document.createElement("div");
+          bottomRow.className = "flex items-center justify-between";
+
+          const imagesCount = document.createElement("p");
+          imagesCount.className = "text-gray-600 font-medium";
+          imagesCount.textContent = `${images.length} image${images.length > 1 ? "s" : ""}`;
+
+          const buttonsDiv = document.createElement("div");
+          buttonsDiv.className = "flex gap-2";
+
+          // View button
+          const viewBtn = document.createElement("button");
+          viewBtn.type = "button";
+          viewBtn.className =
+            "bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1 rounded-md text-sm flex items-center gap-1";
+          viewBtn.innerHTML = '<i class="fas fa-eye"></i> View';
+          viewBtn.addEventListener("click", () => openFolderModal(folder));
+
+          // Download button
+          const downloadBtn = document.createElement("button");
+          downloadBtn.type = "button";
+          downloadBtn.className =
+            "bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded-md text-sm flex items-center gap-1";
+          downloadBtn.innerHTML = '<i class="fas fa-download"></i> Download';
+          downloadBtn.addEventListener("click", () => downloadFolderZip(folder));
+
+          buttonsDiv.appendChild(viewBtn);
+          buttonsDiv.appendChild(downloadBtn);
+
+          bottomRow.appendChild(imagesCount);
+          bottomRow.appendChild(buttonsDiv);
+
+          folderCard.appendChild(bottomRow);
+
+          foldersList.appendChild(folderCard);
+        });
+      }
+
+      // Open modal to show images in folder
+      function openFolderModal(folder) {
+        modalFolderName.textContent = folder;
+        modalImagesGrid.innerHTML = "";
+
+        const images = folders[folder];
+        images.forEach(({ url, name }) => {
+          const imgWrapper = document.createElement("div");
+          imgWrapper.className =
+            "border border-gray-300 rounded overflow-hidden bg-gray-100";
+
+          const imgEl = document.createElement("img");
+          imgEl.src = url;
+          imgEl.alt = `Resized image named ${name} in folder ${folder}`;
+          imgEl.className = "w-full h-32 object-cover";
+
+          imgWrapper.appendChild(imgEl);
+          modalImagesGrid.appendChild(imgWrapper);
+        });
+
+        imagesModal.classList.remove("hidden");
+        imagesModal.classList.add("flex");
+      }
+
+      // Close modal
+      closeModalBtn.addEventListener("click", () => {
+        imagesModal.classList.add("hidden");
+        imagesModal.classList.remove("flex");
+        modalImagesGrid.innerHTML = "";
+        modalFolderName.textContent = "";
+      });
+
+      // Download all images in folder as ZIP
+      async function downloadFolderZip(folder) {
+        if (!folder || !folders[folder]) return;
+
+        const zip = new JSZip();
+        const folderZip = zip.folder(folder);
+
+        const images = folders[folder];
+        for (let i = 0; i < images.length; i++) {
+          const { blob, name } = images[i];
+          folderZip.file(name, blob);
+        }
+
+        const content = await zip.generateAsync({ type: "blob" });
+        saveAs(content, `${folder}.zip`);
+      }
+
+      // Download all images in modal folder as ZIP (button in modal)
+      downloadAllBtn.addEventListener("click", () => {
+        const folder = modalFolderName.textContent;
+        downloadFolderZip(folder);
+      });
+
+      // Handle form submission
+      uploadForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+
+        const folderName = folderNameInput.value.trim();
+        if (!folderName) {
+          alert("Please enter a folder name.");
+          return;
+        }
+
+        const files = Array.from(imageUploadInput.files);
+        if (files.length === 0) {
+          alert("Please select at least one image.");
+          return;
+        }
+
+        // Validate file types
+        const validTypes = ["image/jpeg", "image/jpg", "image/png"];
+        for (const file of files) {
+          if (!validTypes.includes(file.type)) {
+            alert(
+              `File "${file.name}" is not a valid image. Please upload jpg, jpeg, or png files only.`
+            );
+            return;
+          }
+        }
+
+        uploadForm.querySelector("button[type=submit]").disabled = true;
+        uploadForm.querySelector("button[type=submit]").textContent =
+          "Processing...";
+
+        try {
+          if (!folders[folderName]) {
+            folders[folderName] = [];
+          }
+
+          for (const file of files) {
+            const resizedBlob = await resizeImage(file);
+            const url = URL.createObjectURL(resizedBlob);
+            // Use original file name but force .jpg extension because we convert to jpeg
+            const originalName = file.name.replace(/\.[^/.]+$/, "");
+            const newName = originalName + ".jpg";
+
+            folders[folderName].push({
+              name: newName,
+              blob: resizedBlob,
+              url,
+            });
+          }
+
+          renderFolders();
+          uploadForm.reset();
+          alert(
+            `Successfully uploaded and resized ${files.length} image${
+              files.length > 1 ? "s" : ""
+            } to folder "${folderName}".`
+          );
+        } catch (error) {
+          alert("Error processing images: " + error.message);
+        } finally {
+          uploadForm.querySelector("button[type=submit]").disabled = false;
+          uploadForm.querySelector("button[type=submit]").textContent =
+            "Upload & Resize Images";
+        }
+      });
+
+      // Initial render
+      renderFolders();
+    })();
+  </script>
+</body>
+  </html>
