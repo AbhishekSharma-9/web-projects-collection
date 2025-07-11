@@ -9,7 +9,6 @@ Each subfolder contains an individual project with its own purpose, design, and 
 - Aeroplane Landing Page
 - Online-Food-Hub
 - Netflix-Frontend
-- Portfolio Website
 - ...and many more coming soon!
 
 ## <picture> <source srcset="https://fonts.gstatic.com/s/e/notoemoji/latest/2699_fe0f/512.webp" type="image/webp"> <img src="https://fonts.gstatic.com/s/e/notoemoji/latest/2699_fe0f/512.gif" alt="⚙" width="32" height="32"> </picture> Tech Stack
