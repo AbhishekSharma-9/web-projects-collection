@@ -7,6 +7,7 @@ Each subfolder contains an individual project with its own purpose, design, and 
 
 - GYM Landing Page
 - Aeroplane Landing Page
+- Image Resize Web App
 - Online-Food-Hub
 - Netflix-Frontend
 - ...and many more coming soon!
